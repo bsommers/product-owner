@@ -1,0 +1,56 @@
+flowchart TD
+    subgraph ExternalActors ["External Actors & Upstream Producers"]
+        User["Human Product Owner / Engineer"]
+        MeetingNotesCmd["/meeting-notes Skill"]
+        AudioRec["Meeting Recorders / Transcribers"]
+    end
+
+    subgraph BoundaryProductOwner ["Product Owner Skill Suite Boundary"]
+        subgraph IngestionLayer ["1. Ingestion & Grounding Layer"]
+            RawToPRD["raw-to-prd Skill"]
+            Extractor["7-Facet Extractor"]
+            PlaceholderEngine["Placeholder Registry Engine"]
+        end
+
+        subgraph RefinementLayer ["2. Socratic Interview Layer"]
+            PRDRefine["prd-refine Skill"]
+            InterviewQueue["Interactive Question Queue"]
+            AuditTrail["Decision Log Engine"]
+        end
+
+        subgraph ValidationLayer ["3. Quality Gate Layer"]
+            ProductAudit["product-audit Skill"]
+            SCIEngine["Completeness Calculator"]
+            IntegrityChecker["Cross-Doc Consistency Checker"]
+        end
+
+        subgraph SynthesisLayer ["4. Doc Suite Generation Layer"]
+            ProductDocSuite["product-doc-suite Skill"]
+            SADBuilder["Architecture Doc Builder"]
+            UseCaseBuilder["Use Case Matrix Builder"]
+            ContractBuilder["I/O Contract Builder"]
+            ViabilityBuilder["Viability Scorecard Builder"]
+        end
+    end
+
+    subgraph DownstreamConsumers ["Downstream Consumers & Execution Engines"]
+        SDD["spec-driven-development Skill"]
+        Planning["planning-and-task-breakdown Skill"]
+        CodeGen["Engineering Agents (Subagents / GSD)"]
+        CI["CI/CD Pipelines & Quality Gates"]
+    end
+
+    %% Flow linkages
+    User -->|Raw Minutes / Answers| BoundaryProductOwner
+    MeetingNotesCmd -->|Structured Notes| IngestionLayer
+    AudioRec -->|Transcripts| IngestionLayer
+
+    IngestionLayer --> RefinementLayer
+    RefinementLayer <-->|Socratic Questions / Responses| User
+    RefinementLayer --> ValidationLayer
+    ValidationLayer --> SynthesisLayer
+
+    SynthesisLayer --> SDD
+    SynthesisLayer --> Planning
+    SynthesisLayer --> CodeGen
+    SynthesisLayer --> CI

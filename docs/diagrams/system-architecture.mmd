@@ -1,0 +1,82 @@
+flowchart TD
+    subgraph Inputs ["Input Layer"]
+        RawNotes["Raw Notes / Brainstorm"]
+        MeetingMins["Meeting Minutes"]
+        AudioTrans["Transcripts / Audio Notes"]
+        MeetingNotesSkill["/meeting-notes Output"]
+    end
+
+    subgraph SkillSuite ["Product Owner Skill Suite Pipeline"]
+        subgraph S1 ["Skill 1: raw-to-prd"]
+            Parser["Evidence Extractor\n& Normalizer"]
+            Synthesizer["7-Facet PRD Synthesizer"]
+            UnknownEngine["Grounding & Placeholder Engine"]
+            DiagramGen["Mermaid Diagram Generator"]
+        end
+
+        subgraph S2 ["Skill 2: prd-refine"]
+            Scanner["Placeholder Scanner\n& Prioritizer"]
+            Interviewer["Socratic Questioner\n(1-at-a-time loop)"]
+            DocPatcher["In-Place PRD Patcher\n& Decision Logger"]
+        end
+
+        subgraph S3 ["Skill 3: product-doc-suite"]
+            ArchGen["SAD Generator\n(docs/architecture.md)"]
+            UCGen["Use Case Generator\n(docs/use-cases.md)"]
+            ContractGen["Data Contract Generator\n(docs/contracts.md)"]
+            ViabGen["Viability Generator\n(docs/viability.md)"]
+        end
+
+        subgraph S4 ["Skill 4: product-audit"]
+            SCICalc["Spec Completeness Index (SCI)"]
+            DiagramValidator["Diagram & Entity Validator"]
+            HallucinationScanner["Anti-Hallucination Guard"]
+            AuditReporter["Audit Reporter\n(AUDIT-PRD.md)"]
+        end
+    end
+
+    subgraph Storage ["Workspace Artifacts & Storage"]
+        PRDFile[("PRD.md\n(Master Living Spec)")]
+        DocPackFolder[("docs/\n(Comprehensive Docs)")]
+        AuditFile[("AUDIT-PRD.md\n(Quality Gate)")]
+    end
+
+    %% Wiring Inputs
+    RawNotes --> Parser
+    MeetingMins --> Parser
+    AudioTrans --> Parser
+    MeetingNotesSkill --> Parser
+
+    %% S1 Internal
+    Parser --> Synthesizer
+    Synthesizer --> UnknownEngine
+    Synthesizer --> DiagramGen
+    UnknownEngine --> PRDFile
+    DiagramGen --> PRDFile
+
+    %% S2 Loop
+    PRDFile --> Scanner
+    Scanner --> Interviewer
+    Interviewer <--> Stakeholder["Human Stakeholder / User"]
+    Interviewer --> DocPatcher
+    DocPatcher --> PRDFile
+
+    %% S3 Generation
+    PRDFile --> ArchGen
+    PRDFile --> UCGen
+    PRDFile --> ContractGen
+    PRDFile --> ViabGen
+    ArchGen --> DocPackFolder
+    UCGen --> DocPackFolder
+    ContractGen --> DocPackFolder
+    ViabGen --> DocPackFolder
+
+    %% S4 Audit Gate
+    PRDFile --> SCICalc
+    PRDFile --> DiagramValidator
+    PRDFile --> HallucinationScanner
+    SCICalc --> AuditReporter
+    DiagramValidator --> AuditReporter
+    HallucinationScanner --> AuditReporter
+    AuditReporter --> AuditFile
+    AuditReporter -.->|Gap Feedback| Scanner

@@ -1,0 +1,43 @@
+flowchart LR
+    subgraph RawSources ["Unstructured Data"]
+        R1["Audio Transcripts"]
+        R2["Bullet Minutes"]
+        R3["Chat Logs"]
+    end
+
+    subgraph EntityExtraction ["Facet Extraction Pipeline"]
+        E1["Business Objectives & KPIs"]
+        E2["Actor Personas & Journeys"]
+        E3["Systems & Integrations"]
+        E4["I/O & Payloads"]
+        E5["Constraints & Risks"]
+    end
+
+    subgraph GroundingLogic ["Grounding & Gap Analysis"]
+        G1{"Mentioned in Source?"}
+        G2["Extract Explicit Fact"]
+        G3["Generate [UNKNOWN] / [DECISION] Marker"]
+    end
+
+    subgraph LivingArtifact ["Master PRD Document"]
+        P1["PRD Sections 1-7"]
+        P2["Placeholder Registry (Section 8)"]
+        P3["Decision Audit Trail (Section 9)"]
+    end
+
+    subgraph DerivedDocs ["Derived Product Documentation (docs/)"]
+        D1["architecture.md"]
+        D2["use-cases.md"]
+        D3["contracts.md"]
+        D4["viability.md"]
+    end
+
+    RawSources --> EntityExtraction
+    EntityExtraction --> G1
+    G1 -- Yes --> G2
+    G1 -- No / Ambiguous --> G3
+    G2 --> P1
+    G3 --> P2
+    P2 -->|Socratic Interview| P3
+    P3 -->|In-Place Patch| P1
+    P1 --> DerivedDocs

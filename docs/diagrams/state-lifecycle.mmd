@@ -1,0 +1,43 @@
+stateDiagram-v2
+    [*] --> RawInputReceived: Intake Meeting Minutes
+
+    state "Raw Ingestion (raw-to-prd)" as RawState {
+        RawInputReceived --> ParsingFacets
+        ParsingFacets --> ExtractingKnowns
+        ParsingFacets --> FlaggingUnknowns
+        ExtractingKnowns --> AssemblingDraft
+        FlaggingUnknowns --> AssemblingDraft
+    }
+
+    AssemblingDraft --> DraftPRD: Write PRD.md
+
+    state "Socratic Refinement (prd-refine)" as RefineState {
+        DraftPRD --> ScanningPlaceholders: Identify open [UNKNOWN] tags
+        ScanningPlaceholders --> PromptingUser: Present 1-question interview
+        PromptingUser --> AwaitingFeedback: User answers
+        AwaitingFeedback --> PatchingDocument: Patch requirement into PRD.md
+        PatchingDocument --> AppendingDecisionLog: Log rationale & date
+        AppendingDecisionLog --> ScanningPlaceholders: Check remaining items
+    }
+
+    ScanningPlaceholders --> FrozenPRD: Zero unknowns remaining
+
+    state "Quality Audit (product-audit)" as AuditState {
+        FrozenPRD --> CalculatingSCI: Spec Completeness Index
+        CalculatingSCI --> ValidatingDiagrams: Cross-check nodes vs text
+        ValidatingDiagrams --> ValidatingContracts: Check schema definitions
+        ValidatingContracts --> AuditVerdict: Generate AUDIT-PRD.md
+    }
+
+    AuditVerdict --> RefineState: If Audit FAILS (Gaps identified)
+    AuditVerdict --> ApprovedPRD: If Audit PASSES
+
+    state "Documentation Derivation (product-doc-suite)" as DocState {
+        ApprovedPRD --> GeneratingSAD: docs/architecture.md
+        ApprovedPRD --> GeneratingUseCases: docs/use-cases.md
+        ApprovedPRD --> GeneratingContracts: docs/contracts.md
+        ApprovedPRD --> GeneratingViability: docs/viability.md
+    }
+
+    GeneratingViability --> FinalizedDocPack: All docs written
+    FinalizedDocPack --> [*]

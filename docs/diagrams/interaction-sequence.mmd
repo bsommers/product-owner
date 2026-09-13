@@ -1,0 +1,53 @@
+sequenceDiagram
+    autonumber
+    actor Stakeholder as Product Owner / User
+    participant MeetingNotes as /meeting-notes Skill
+    participant RawToPRD as Skill: raw-to-prd
+    participant Workspace as Workspace (PRD.md)
+    participant PRDRefine as Skill: prd-refine
+    participant DocSuite as Skill: product-doc-suite
+    participant Auditor as Skill: product-audit
+
+    Note over Stakeholder,MeetingNotes: Phase 1: Intake & Raw Meeting Notes
+    Stakeholder->>MeetingNotes: Submit audio transcript / raw minutes
+    MeetingNotes-->>Stakeholder: Return structured meeting minutes
+
+    Note over Stakeholder,RawToPRD: Phase 2: Baseline PRD Synthesis
+    Stakeholder->>RawToPRD: /raw-to-prd (Input Meeting Minutes)
+    activate RawToPRD
+    RawToPRD->>RawToPRD: Extract 7 Core Facets
+    RawToPRD->>RawToPRD: Identify unstated facts & inject [UNKNOWN] placeholders
+    RawToPRD->>RawToPRD: Generate system topology & sequence diagrams
+    RawToPRD->>Workspace: Write initial PRD.md (Living Draft)
+    RawToPRD-->>Stakeholder: Present PRD summary + Count of Open Placeholders
+    deactivate RawToPRD
+
+    Note over Stakeholder,PRDRefine: Phase 3: Socratic Refinement Loop
+    Stakeholder->>PRDRefine: /prd-refine (PRD.md)
+    activate PRDRefine
+    PRDRefine->>Workspace: Read active [UNKNOWN] & [DECISION NEEDED] blocks
+    loop For each unresolved placeholder
+        PRDRefine->>Stakeholder: Ask targeted Socratic question with context & options
+        Stakeholder-->>PRDRefine: Provide decision / technical clarification
+        PRDRefine->>Workspace: Update PRD.md in-place + record Decision Log
+    end
+    PRDRefine-->>Stakeholder: All placeholders resolved (PRD Frozen)
+    deactivate PRDRefine
+
+    Note over Stakeholder,Auditor: Phase 4: Quality Gate & Viability Audit
+    Stakeholder->>Auditor: /product-audit (PRD.md)
+    activate Auditor
+    Auditor->>Workspace: Verify SCI score, diagrams, I/O schemas & boundaries
+    Auditor->>Workspace: Write AUDIT-PRD.md (Quality Verdict: PASS)
+    Auditor-->>Stakeholder: Audit Report & Coverage Confirmation
+    deactivate Auditor
+
+    Note over Stakeholder,DocSuite: Phase 5: Complete Doc Pack Derivation
+    Stakeholder->>DocSuite: /product-doc-suite (PRD.md)
+    activate DocSuite
+    DocSuite->>Workspace: Generate docs/architecture.md (SAD)
+    DocSuite->>Workspace: Generate docs/use-cases.md (Capability Matrix)
+    DocSuite->>Workspace: Generate docs/contracts.md (Data Schema & I/O)
+    DocSuite->>Workspace: Generate docs/viability.md (ROI & Risk Scorecard)
+    DocSuite-->>Stakeholder: Full Documentation Suite Created
+    deactivate DocSuite
