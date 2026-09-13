@@ -116,8 +116,8 @@ flowchart TD
     PRD <--> PRDRefine
     PRD --> PRDAudit
     PRDAudit --> AuditFile
-    PRDAudit -.->|Fail: Remaining Unknowns| PRDRefine
-    PRDAudit -->|Pass: SCI >= 95%| DocSuite
+    PRDAudit -.->|Remaining Unknowns| PRDRefine
+    PRDAudit -->|Audit Passed| DocSuite
 
     DocSuite --> SAD
     DocSuite --> UC

@@ -19,8 +19,8 @@ flowchart TD
     S2 <--> User["Human Stakeholder / Architect"]
     S2 -->|Patch & Log Decision| PRD
     PRD --> S4["product-audit\n(3. Quality Gate & SCI Score)"]
-    S4 -->|Pass (SCI >= 95%)| S3["product-doc-suite\n(4. Full Documentation Suite)"]
-    S4 -.->|Fail (Gaps Found)| S2
+    S4 -->|Audit Passed| S3["product-doc-suite\n(4. Full Documentation Suite)"]
+    S4 -.->|Gaps Found| S2
 
     subgraph DocPack ["Derived Product Documentation (docs/)"]
         S3 --> SAD["docs/architecture.md"]
