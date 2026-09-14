@@ -22,8 +22,9 @@ The Product Owner pipeline relies on a machine-parseable, human-readable placeho
 | `REQUIREMENT` | Business logic, scope boundaries, user permissions | `[UNKNOWN: REQUIREMENT - Multi-Tenant Isolation Rule]` |
 | `ARCHITECTURE` | Tech stack, cloud infra, message brokers, caching | `[UNKNOWN: ARCHITECTURE - Message Broker Selection]` |
 | `DATA_SCHEMA` | Field types, primary keys, nullability, formats | `[UNKNOWN: DATA_SCHEMA - Transaction ID Format]` |
+| `NFR_METRIC` | Target latency, throughput, error budget, KPIs | `[UNKNOWN: NFR_METRIC - Ingestion Latency SLA Target]` |
+| `SECURITY_RBAC` | User role permissions, auth flows, token scopes | `[UNKNOWN: SECURITY_RBAC - Contributor Permission Tier]` |
 | `INTEGRATION` | External APIs, auth mechanisms, webhook retries | `[UNKNOWN: INTEGRATION - CRM Webhook Signature Auth]` |
-| `METRIC` | Target latency, throughput, error budget, KPIs | `[UNKNOWN: METRIC - Ingestion Latency SLA Target]` |
 | `DECISION NEEDED` | Conflicting options surfaced in meeting minutes | `[DECISION NEEDED: FORK - GraphQL vs REST API Standard]` |
 
 ---
@@ -39,6 +40,9 @@ Every generated `PRD.md` must strictly adhere to this 9-section structure:
 - **Problem Statement**: [Concrete description of pain points]
 - **Target Beneficiaries**: [User personas and stakeholders]
 - **Core Value Proposition**: [Delta over current solution]
+- **Alternative & Workaround Comparison**:
+  | Solution / Workaround | Limitations | Cost / Friction | Why New Solution Wins |
+  |---|---|---|---|
 
 ## 2. Business Value & Success Metrics
 - **Strategic Objectives**: [High-level business outcomes]
@@ -47,59 +51,50 @@ Every generated `PRD.md` must strictly adhere to this 9-section structure:
   |---|---|---|---|
 - **Target Timeline & Milestones**: [Target release phases]
 
-## 3. Scope & Capability Map
+## 3. Scope, Capability Map & SPIDR MVP Slicing
+### 3.1 Scope Boundaries
 - **In-Scope Capabilities**: [Explicit list of features]
 - **Out-of-Scope / Non-Goals**: [Explicit anti-features and deferred items]
-- **Phased Rollout Strategy**: [Phase 1 MVP -> Phase 2 -> Phase 3]
 
-## 4. Detailed Use Cases & User Journeys
-### UC-01: [Use Case Name]
-- **Primary Actor**: [Persona]
-- **Preconditions**: [State before trigger]
-- **Trigger**: [Event initiating workflow]
-- **Happy Path**: [Step-by-step sequence]
-- **Edge Cases & Error Handling**: [Alternative branches]
-- **Postconditions**: [State after completion]
+### 3.2 SPIDR Vertical MVP Slicing
+| Slice Type | Focus Area | Minimal Viable Scope (Phase 1) | Incremental Scope (Phase 2+) |
+|---|---|---|---|
+| **S - Spike** | Architecture & Tech Feasibility | ... | ... |
+| **P - Paths** | Workflow Paths | ... | ... |
+| **I - Interfaces** | Ingestion & Access Channels | ... | ... |
+| **D - Data** | Schema & Payload Complexity | ... | ... |
+| **R - Rules** | Business Logic & Validations | ... | ... |
+
+## 4. Detailed Use Cases, User Journeys & UI/UX Specifications
+### 4.1 Detailed Use Cases (Gherkin & Edge Cases)
+### 4.2 UI/UX Wireframe & Interaction Layouts
+- ASCII Screen Mockup
+- Form & Field Validation Matrix
+- Component State Transitions
 
 ## 5. System Interactions & Architecture
-### 5.1 Architecture Topology
-```mermaid
-flowchart LR
-    ...
-```
+### 5.1 Architecture Topology (Mermaid flowchart)
 ### 5.2 Systems Interacted With & Touched
 | System Name | Category | Ownership | Protocol | Data Exchanged | Fallback Strategy |
 |---|---|---|---|---|---|
-
-### 5.3 Sequence & Integration Flows
-```mermaid
-sequenceDiagram
-    ...
-```
+### 5.3 Sequence & Integration Flows (Mermaid sequenceDiagram)
 
 ## 6. Data Contracts & I/O Specifications
-### 6.1 Input Ingestion Contracts
-- **Ingestion Channel**: [REST / gRPC / Webhook / File / CLI]
-- **Input Payload Schema**:
-```json
-{
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "type": "object",
-  "properties": {}
-}
-```
+### 6.1 Input Ingestion Contracts (JSON Schema)
+### 6.2 Output & Event Contracts (Event Schema & Error Models)
 
-### 6.2 Output & Event Contracts
-- **Output Schema**: [Response JSON / Event Payload]
-- **Error Response Codes & Schemas**: [HTTP 400/404/500 models]
-
-## 7. Viability, Risks & Technical Constraints
-- **Technical Feasibility & Bottlenecks**: [Known limitations]
-- **Dependencies**: [Internal services, vendor SLAs]
-- **Security, Privacy & Compliance**: [GDPR, SOC2, Encryption]
-- **Risk Assessment & Mitigation Matrix**:
-  | Risk Description | Severity (H/M/L) | Likelihood (H/M/L) | Mitigation Strategy |
-  |---|---|---|---|
+## 7. Viability, NFRs, Security & Safe Rollout
+### 7.1 Quantitative NFRs & Latency SLO/SLA Targets
+| Dimension | Metric | Target (SLO) | Breach Threshold (SLA) | Measurement Method |
+|---|---|---|---|---|
+### 7.2 Security Threat Model (STRIDE) & RBAC Capability Matrix
+| Role Name | Read Spec | Edit Draft | Resolve Unknowns | Freeze PRD | Deploy / Ship |
+|---|:---:|:---:|:---:|:---:|:---:|
+### 7.3 Zero-Downtime Rollout & Feature Flagging Runbook
+- Feature flag keys & rollout cohorts
+- Expand/contract DB schema transition
+- Rollback alert triggers
+### 7.4 Risk Assessment & Mitigation Matrix
 
 ## 8. Open Questions & Placeholder Registry
 *(Auto-populated with all unresolved `[UNKNOWN]` markers)*
@@ -111,58 +106,85 @@ sequenceDiagram
 
 ---
 
-## 3. Decision Log Table Contract (Section 9)
+## 3. Specialized Data Contracts
 
-To ensure full accountability and traceability, all modifications to the PRD made during the Socratic refinement loop MUST append a record adhering to this schema:
+### 3.1 Role-Based Access Control (RBAC) Contract Schema
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RBACPolicy",
+  "type": "object",
+  "required": ["roles", "resources"],
+  "properties": {
+    "roles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["roleName", "permissions"],
+        "properties": {
+          "roleName": { "type": "string" },
+          "permissions": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+### 3.2 Feature Flag Configuration Contract Schema
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "FeatureFlagConfig",
+  "type": "object",
+  "required": ["flagKey", "defaultValue", "rolloutStrategy", "rollbackAlerts"],
+  "properties": {
+    "flagKey": { "type": "string", "pattern": "^feat_[a-z0-9_]+$" },
+    "defaultValue": { "type": "boolean" },
+    "rolloutStrategy": {
+      "type": "object",
+      "properties": {
+        "canaryPercentage": { "type": "number", "minimum": 0, "maximum": 100 },
+        "targetCohorts": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "rollbackAlerts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["metric", "threshold", "windowMinutes"],
+        "properties": {
+          "metric": { "type": "string" },
+          "threshold": { "type": "string" },
+          "windowMinutes": { "type": "integer" }
+        }
+      }
+    }
+  }
+}
+```
+
+---
+
+## 4. Decision Log Table Contract (Section 9)
 
 ```text
 | Date (YYYY-MM-DD) | Section Affected | Prior State / Question | Decision Made | Author / Stakeholder |
 ```
 
-### Example Entry
-```markdown
-| 2026-09-13 | Section 5.2 (Architecture) | [UNKNOWN: ARCHITECTURE - Message Broker] | Selected Apache Kafka for replayable event streaming | Lead Architect (@bill) |
-```
-
 ---
 
-## 4. Derived Documentation Suite Contract (`docs/`)
+## 5. Derived Documentation Suite Contract (`docs/`)
 
 When `product-doc-suite` runs, it derives four standardized documents:
 
 ```text
 docs/
-├── architecture.md    # System Architecture Document (SAD), topologies, failure domains
-├── use-cases.md       # Persona definitions, capability matrix, Gherkin specs
-├── contracts.md       # API endpoints, JSON schemas, event payloads, error schemas
-└── viability.md       # ROI analysis, business scorecard, compliance checklist
-```
-
----
-
-## 5. Quality Audit Schema (`AUDIT-PRD.md`)
-
-```markdown
-# Quality Gate Audit: [Product Name]
-
-- **Audit Date**: [ISO Timestamp]
-- **Overall Verdict**: [ PASS | WARNING | FAIL ]
-- **Spec Completeness Index (SCI)**: [ 0% - 100% ]
-
-## 1. Completeness Evaluation
-- **Total Required Sections**: 9
-- **Fully Specified Sections**: [Count]
-- **Active Unknown Placeholders**: [Count]
-
-## 2. Structural & Diagram Consistency
-- [x] All Section 5.2 systems are rendered in Section 5.1 Mermaid diagram
-- [x] All Section 6.1 inputs have matching Section 6.2 outputs
-- [x] Section 8 Placeholder Registry matches all active inline tags
-
-## 3. Anti-Hallucination & Grounding Check
-- [x] Zero ungrounded architectural choices detected
-- [x] All requirements traceable to meeting notes or Decision Log
-
-## 4. Remediation Items (If Verdict != PASS)
-1. [Required action to reach PASS status]
+├── architecture.md    # SAD, topologies, STRIDE threat model, expand/contract DB pattern
+├── use-cases.md       # Personas, capability matrix, SPIDR vertical slicing, ASCII wireframes
+├── contracts.md       # API schemas, RBAC tables, feature flag contracts, error models
+└── viability.md       # ROI analysis, latency SLO budgets, zero-downtime rollout runbook
 ```

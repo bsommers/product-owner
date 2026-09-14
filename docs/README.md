@@ -10,11 +10,11 @@ This system bridges the gap between messy, unstructured meeting minutes, intervi
 
 | Document | Description | Key Contents |
 |---|---|---|
-| [System Architecture](file:///home/bill/src/ai/product-owner/docs/architecture.md) | Full architectural blueprint of the skill pipeline and engine | Component topology, 7-facet engine, pipeline flow, ASCII/Mermaid models |
+| [System Architecture](file:///home/bill/src/ai/product-owner/docs/architecture.md) | Full architectural blueprint of the skill pipeline and engine | Component topology, 7-facet engine, STRIDE threat model, SPIDR build order, Expand/Contract DB pattern |
 | [System Interactions](file:///home/bill/src/ai/product-owner/docs/interactions.md) | Interaction protocols between users, agents, and upstream systems | Socratic interview protocol, multi-system integration touchpoints, sequence flows |
-| [Use Cases & Capabilities](file:///home/bill/src/ai/product-owner/docs/use-cases.md) | Actor journeys, functional requirements, and edge case specifications | Intake workflows, conflict resolution, interview progression, Gherkin specs |
-| [Data Contracts & Schemas](file:///home/bill/src/ai/product-owner/docs/contracts.md) | Exact schema definitions for PRD, placeholder syntax, and derived documents | `PRD.md` format, `[UNKNOWN]` taxonomy, SAD/Contracts/Viability schema contracts |
-| [Viability & Quality Gate](file:///home/bill/src/ai/product-owner/docs/viability.md) | Quality gates, Spec Completeness Index (SCI), and business viability scoring | SCI formula, 5-axis audit rubric, ROI projection, pass/fail gating |
+| [Use Cases & Wireframes](file:///home/bill/src/ai/product-owner/docs/use-cases.md) | Actor journeys, functional requirements, and UI/UX wireframe specs | ASCII wireframe layouts, field validation matrix, component state machine, SPIDR MVP slicing, Gherkin specs |
+| [Data Contracts & Schemas](file:///home/bill/src/ai/product-owner/docs/contracts.md) | Exact schema definitions for PRD, placeholder syntax, and derived documents | `PRD.md` format, `[UNKNOWN]` taxonomy, RBAC schema, Feature Flag schema, JSON payload models |
+| [Viability & Quality Gate](file:///home/bill/src/ai/product-owner/docs/viability.md) | Quality gates, Spec Completeness Index (SCI), and operational rollout runbook | Quantitative latency SLO budgets, zero-downtime rollout phases, automated rollback triggers, 7-gate audit rubric |
 | [Diagram Library](file:///home/bill/src/ai/product-owner/docs/diagrams/) | Standalone `.mmd` diagram files | Architecture, sequence, data flow, state lifecycle, system boundaries |
 
 ---
@@ -37,8 +37,9 @@ This system bridges the gap between messy, unstructured meeting minutes, intervi
 |                         PRODUCT OWNER PIPELINE ENGINE                             |
 |                                                                                   |
 |  +-----------------------------------------------------------------------------+  |
-|  | [1] raw-to-prd: 7-Facet Analysis & Grounding                                |  |
+|  | [1] raw-to-prd: 7-Facet Analysis, UI Wireframes & NFR Grounding             |  |
 |  | - Extracts explicit facts                                                   |  |
+|  | - Generates ASCII wireframes, field matrices & SPIDR slices                 |  |
 |  | - Flags gaps as [UNKNOWN: ...] / [DECISION NEEDED: ...]                     |  |
 |  | - Generates Mermaid architecture & sequence diagrams                       |  |
 |  +-------------------------------------+---------------------------------------+  |
@@ -58,8 +59,8 @@ This system bridges the gap between messy, unstructured meeting minutes, intervi
 |                                        | freezes when SCI = 100%                  |
 |                                        v                                          |
 |  +-----------------------------------------------------------------------------+  |
-|  | [4] product-audit: Quality Gate & Validation                                |  |
-|  | - Evaluates Spec Completeness Index (SCI) & cross-diagram consistency       |  |
+|  | [4] product-audit: 7-Gate Quality Validation                                |  |
+|  | - Evaluates SCI, NFR budgets, STRIDE/RBAC, and diagram consistency          |  |
 |  +-------------------------------------+---------------------------------------+  |
 |                                        | emits AUDIT-PRD.md (PASS)                |
 |                                        v                                          |
@@ -79,16 +80,16 @@ flowchart TD
     S1 --> PRD["PRD.md\n(Master Living Spec)"]
     PRD --> S2["2. prd-refine\n(Socratic 1-at-a-Time Interview)"]
     S2 <--> User["Stakeholder / Engineer"]
-    S2 -->|In-Place Patch| PRD
-    PRD --> S4["3. product-audit\n(Quality Gate & SCI Calculation)"]
-    S4 -->|Audit PASS| S3["4. product-doc-suite\n(Derive Documentation Pack)"]
-    S4 -.->|Audit FAIL| S2
+    S2 -->|Patch & Log Decision| PRD
+    PRD --> S4["3. product-audit\n(7-Gate Quality Audit & SCI)"]
+    S4 -->|Audit Passed| S3["4. product-doc-suite\n(Derive Documentation Pack)"]
+    S4 -.->|Gaps Found| S2
 
     subgraph DocPack ["Generated Documentation Suite (docs/)"]
-        S3 --> SAD["architecture.md\n(SAD & Topologies)"]
-        S3 --> UC["use-cases.md\n(Capability Matrix)"]
-        S3 --> IO["contracts.md\n(I/O & Schemas)"]
-        S3 --> BIZ["viability.md\n(ROI & Risk Scorecard)"]
+        S3 --> SAD["architecture.md\n(SAD & STRIDE Model)"]
+        S3 --> UC["use-cases.md\n(Wireframes & SPIDR Slicing)"]
+        S3 --> IO["contracts.md\n(I/O Schemas & RBAC)"]
+        S3 --> BIZ["viability.md\n(SLO Budgets & Rollout Runbook)"]
     end
 ```
 

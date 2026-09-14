@@ -1,10 +1,11 @@
-# Use Cases & Capability Matrix
+# Use Cases, UI/UX Wireframes & Capability Matrix
 
 ## 1. Actor Personas
 
 | Actor | Description | Primary Goal in System |
 |---|---|---|
 | **Product Owner (PO)** | Business stakeholder or product manager with messy notes from customer or cross-functional meetings. | Transform meeting takeaways into a structured PRD and business viability model. |
+| **Frontend Engineer / UX Designer** | Engineer building client interfaces, state transitions, and responsive forms. | Extract unambiguous screen layouts, field regexes, and component state machines. |
 | **Engineering Lead / Architect** | Technical lead defining systems touched, tech stack, data contracts, and risks. | Verify technical viability, resolve architecture unknowns, ensure accurate diagrams. |
 | **Antigravity Agent / Developer** | AI coding assistant executing implementation plans. | Consume unambiguous, fully specified contracts without guessing requirements. |
 
@@ -18,22 +19,81 @@
 | **CAP-02** | 7-Facet PRD Synthesis | `raw-to-prd` | Structured entity tree | Baseline `PRD.md` |
 | **CAP-03** | Unknowns & Gap Extraction | `raw-to-prd` | Extracted facts vs. 7-facet schema | Standardized `[UNKNOWN]` markers |
 | **CAP-04** | Mermaid Diagram Generation | `raw-to-prd` | Identified entities & interactions | Topology & sequence diagrams |
-| **CAP-05** | Socratic Refinement Engine | `prd-refine` | `PRD.md` with active placeholders | Interactive queries & updated PRD |
-| **CAP-06** | Decision Audit Trail Logging | `prd-refine` | Resolved stakeholder answers | Append-only Decision Log |
-| **CAP-07** | Spec Completeness Index (SCI) | `product-audit` | Target `PRD.md` | Numerical SCI score (0-100%) |
-| **CAP-08** | Multi-Doc Pack Derivation | `product-doc-suite` | Approved `PRD.md` | 4 modular docs in `docs/` |
+| **CAP-05** | UI/UX Wireframe Synthesis | `raw-to-prd` | UI discussion notes & form fields | ASCII mockups & validation tables |
+| **CAP-06** | SPIDR Vertical MVP Slicing | `product-doc-suite` | In-scope capabilities & architecture | 5-axis SPIDR breakdown |
+| **CAP-07** | Socratic Refinement Engine | `prd-refine` | `PRD.md` with active placeholders | Interactive queries & updated PRD |
+| **CAP-08** | Decision Audit Trail Logging | `prd-refine` | Resolved stakeholder answers | Append-only Decision Log |
+| **CAP-09** | 7-Gate Quality Audit (SCI) | `product-audit` | Target `PRD.md` | Numerical SCI score (0-100%) |
+| **CAP-10** | Multi-Doc Pack Derivation | `product-doc-suite` | Approved `PRD.md` | 4 modular docs in `docs/` |
 
 ---
 
-## 3. Detailed Use Case Specifications
+## 3. UI/UX Interaction & Wireframe Specifications
+
+### 3.1 Standard Terminal / Web Component Layout
+
+```text
++===================================================================================================+
+| [Header] Product Owner Suite: Active Specification Workspace                         [User: Lead] |
++===================================================================================================+
+| (Sidebar Navigation)    | (Main Specification Workspace)                                          |
+|                         |                                                                         |
+| > Ingestion Dashboard   | +---------------------------------------------------------------------+ |
+| > Active PRD.md         | | Ingestion Source: Q3_Strategy_Meeting_Transcript.txt                | |
+| > Socratic Interview    | | Status: REFINING (SCI: 82%) | Open Unknowns: 3                      | |
+| > Quality Gate Audit    | +---------------------------------------------------------------------+ |
+| > Derived Docs (docs/)  |                                                                         |
+|                         | [ Socratic Question Queue ]                                            |
+|                         | 1. [ACTIVE] Database Engine for Event Streaming                        |
+|                         |    Option A: Apache Kafka (Recommended)                                |
+|                         |    Option B: Redis Streams                                             |
+|                         |    Option C: AWS SQS / SNS                                             |
+|                         |                                                                         |
+|                         | [ Submit Decision ] [ Skip / Defer ]                                    |
++===================================================================================================+
+```
+
+### 3.2 Form & Field Validation Contract
+
+| Field Name | Type | Validation Pattern | Required? | Client Error Message | Server Response Code |
+|---|---|---|:---:|---|---|
+| `specTitle` | Input Text | `^[A-Za-z0-9 _-]{3,64}$` | Yes | "Title must be 3-64 alphanumeric characters." | HTTP 400 `INVALID_TITLE` |
+| `ownerEmail` | Input Email | `^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$` | Yes | "Please provide a valid corporate email address." | HTTP 400 `INVALID_EMAIL` |
+| `targetSlaMs` | Number Int | `1 <= value <= 10000` | No | "Target SLA must be between 1ms and 10000ms." | HTTP 422 `UNPROCESSABLE_SLA` |
+
+### 3.3 Component State Machine
 
 ```mermaid
-flowchart LR
-    UC1["UC-01: Raw Ingestion & Synthesis"] --> UC2["UC-02: Grounding & Unknown Extraction"]
-    UC2 --> UC3["UC-03: Socratic Refinement Loop"]
-    UC3 --> UC4["UC-04: Quality Gate Audit"]
-    UC4 --> UC5["UC-05: Documentation Suite Derivation"]
+stateDiagram-v2
+    [*] --> Idle: Mount Component
+    Idle --> Loading: Submit User Input / Trigger Action
+    Loading --> Success: Server Responds HTTP 200 OK
+    Loading --> Error: Server Responds HTTP 4xx / 5xx
+    Error --> Loading: Retry Action
+    Success --> Idle: Auto-clear banner after 3s
 ```
+
+---
+
+## 4. SPIDR Vertical MVP Slicing Framework
+
+```text
++---------------------------------------------------------------------------------------------------+
+|                                      SPIDR DECOMPOSITION                                          |
++-------------------+---------------------------------------+---------------------------------------+
+| Axis              | Phase 1: Minimal Viable Slice (MVP)   | Phase 2+: Incremental Hardening & Scale|
++-------------------+---------------------------------------+---------------------------------------+
+| **Spike**         | Benchmark single-node parse speed     | Distributed multi-tenant bench        |
+| **Paths**         | Happy path intake & Socratic loop     | Dead-letter queue & recovery paths    |
+| **Interfaces**    | CLI commands & raw text file intake   | REST API & Webhook streaming endpoints|
+| **Data**          | Flat JSON schemas & Markdown tables   | Complex nested schemas & binary files |
+| **Rules**         | Basic type & non-null validations     | Dynamic RBAC & tenant quota validation|
++-------------------+---------------------------------------+---------------------------------------+
+```
+
+---
+
+## 5. Detailed Use Case Specifications
 
 ### UC-01: Ingestion of Raw Meeting Minutes & Baseline PRD Synthesis
 - **Primary Actor**: Product Owner / Technical Lead
@@ -46,18 +106,6 @@ flowchart LR
   4. The agent writes `PRD.md` containing all knowns, placeholders, and Mermaid diagrams.
   5. The agent outputs a summary indicating the number of resolved vs. open placeholder items.
 
-#### Gherkin Acceptance Scenario
-```gherkin
-Scenario: Ingesting unstructured meeting notes
-  Given the user provides 20 lines of unstructured meeting minutes
-  When the user executes "/raw-to-prd"
-  Then "PRD.md" is created in the repository root
-  And Section 1 through Section 7 are populated with extracted facts
-  And any unstated technical parameters are marked with "[UNKNOWN: ...]"
-  And Section 5 contains a valid Mermaid architecture diagram
-  And Section 8 contains the active placeholder registry
-```
-
 ---
 
 ### UC-02: Zero-Hallucination Gap Analysis & Placeholder Registration
@@ -69,16 +117,6 @@ Scenario: Ingesting unstructured meeting notes
   2. If evidence is absent, the system **does not invent** a solution (e.g., does not assume PostgreSQL or OAuth2).
   3. System constructs a standardized `[UNKNOWN: <Category>]` block containing source context, potential options, architectural impact, and a draft interview question.
   4. System registers the placeholder in Section 8 of `PRD.md`.
-
-#### Gherkin Acceptance Scenario
-```gherkin
-Scenario: Handling missing architectural details
-  Given the meeting notes mention "we need a fast caching layer" without naming a technology
-  When the synthesis engine processes Section 5 (Architecture)
-  Then the engine must NOT unilaterally choose Redis or Memcached
-  And the engine must emit a "[UNKNOWN: ARCHITECTURE - Caching Engine]" placeholder
-  And the placeholder must list Redis, Memcached, and In-Memory as candidate options
-```
 
 ---
 
@@ -94,18 +132,6 @@ Scenario: Handling missing architectural details
   5. Agent adds a new row to Section 9 (*Decision Log & Audit Trail*) recording Date, Item, Prior State, Decision Made, and Author.
   6. Agent advances to the next placeholder or declares the PRD frozen if all are resolved.
 
-#### Gherkin Acceptance Scenario
-```gherkin
-Scenario: Resolving an unknown item via Socratic interview
-  Given "PRD.md" has an open placeholder "[UNKNOWN: DATA_SCHEMA - User ID Format]"
-  When the user runs "/prd-refine"
-  Then the agent asks the user to choose between UUIDv4, ULID, or Integer Auto-increment
-  When the user replies "UUIDv4"
-  Then the placeholder is replaced with "UUIDv4" in Section 6
-  And a row is appended to the Decision Log in Section 9
-  And the placeholder is removed from Section 8
-```
-
 ---
 
 ### UC-04: Automated Quality Gate & Spec Completeness Audit
@@ -113,21 +139,9 @@ Scenario: Resolving an unknown item via Socratic interview
 - **Preconditions**: User has completed Socratic refinement and wishes to freeze the PRD.
 - **Trigger**: User runs `/product-audit`.
 - **Main Success Scenario**:
-  1. Auditor calculates Spec Completeness Index: $\text{SCI} = \frac{\text{Completed Sections}}{\text{Total Sections}} \times 100\%$.
-  2. Auditor verifies that all systems named in Section 5.2 exist in the Section 5.1 Mermaid diagram.
-  3. Auditor confirms that all API inputs in Section 6.1 have matching error/output models in Section 6.2.
-  4. Auditor writes `AUDIT-PRD.md` with status `PASS` (if SCI $\ge$ 95% and 0 fatal errors) or `FAIL`.
-
-#### Gherkin Acceptance Scenario
-```gherkin
-Scenario: Auditing a fully refined PRD
-  Given "PRD.md" has 0 open "[UNKNOWN]" placeholders
-  And all systems in Section 5.2 are represented in Mermaid diagrams
-  When the user executes "/product-audit"
-  Then "AUDIT-PRD.md" is generated
-  And the audit report status is "PASS"
-  And the Spec Completeness Index is reported as 100%
-```
+  1. Auditor calculates Spec Completeness Index: $\text{SCI} = \left( 1 - \frac{W_{\text{req}} \cdot N_{\text{unknown}} + W_{\text{fork}} \cdot N_{\text{fork}}}{N_{\text{total\_dimensions}}} \right) \times 100\%$.
+  2. Auditor verifies the 7 quality gates (Section completeness, Diagram parity, Contract pairing, NFR budgeting, RBAC security, SPIDR slicing, Zero fabrication).
+  3. Auditor writes `AUDIT-PRD.md` with status `PASS` (if SCI $\ge$ 95% and 0 fatal errors) or `FAIL`.
 
 ---
 
@@ -137,18 +151,8 @@ Scenario: Auditing a fully refined PRD
 - **Trigger**: User runs `/product-doc-suite`.
 - **Main Success Scenario**:
   1. Engine reads the approved `PRD.md`.
-  2. Engine generates `docs/architecture.md` (System Architecture Document / SAD).
-  3. Engine generates `docs/use-cases.md` (Capability Matrix & User Stories).
-  4. Engine generates `docs/contracts.md` (I/O Schemas & Interface Specifications).
-  5. Engine generates `docs/viability.md` (Business Case & Risk Scorecard).
+  2. Engine generates `docs/architecture.md` (System Architecture Document / SAD with STRIDE).
+  3. Engine generates `docs/use-cases.md` (Capability Matrix, Persona Stories, UI Wireframes, SPIDR Slicing).
+  4. Engine generates `docs/contracts.md` (I/O Schemas, RBAC Tables, Feature Flag Configs).
+  5. Engine generates `docs/viability.md` (Business Case, Latency SLOs, Zero-Downtime Rollout Runbook).
   6. Engine verifies cross-document consistency across all 4 files.
-
-#### Gherkin Acceptance Scenario
-```gherkin
-Scenario: Deriving complete product documentation pack
-  Given "PRD.md" has an approved audit status of "PASS"
-  When the user executes "/product-doc-suite"
-  Then the "docs/" directory contains "architecture.md", "use-cases.md", "contracts.md", and "viability.md"
-  And all schemas in "contracts.md" match the contracts in "PRD.md"
-  And all diagrams in "architecture.md" render without syntax errors
-```

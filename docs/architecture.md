@@ -129,56 +129,88 @@ flowchart TD
 
 ---
 
-## 3. Subsystem Detailed Specifications
+## 3. Threat Modeling & Security Architecture (STRIDE)
 
-### 3.1 Subsystem 1: Ingestion & 7-Facet Synthesizer (`raw-to-prd`)
-- **Purpose**: Consumes raw input text and constructs an exhaustive first draft of `PRD.md`.
-- **The 7-Facet Extraction Matrix**:
-  1. **Viability**: Extracts operational limitations, performance bottlenecks, tech compatibility constraints.
-  2. **Utility & Problem Space**: Extracts target personas, user pain points, and current inefficient workarounds.
-  3. **Business Value & Success Metrics**: Extracts quantifiable targets (KPIs, time saved, revenue goals).
-  4. **Use Cases & User Journeys**: Identifies primary workflows, preconditions, actor actions, and edge cases.
-  5. **Technologies Involved & Systems Touched**: Compiles an explicit inventory of all databases, microservices, 3rd party APIs, and cloud infrastructure.
-  6. **Data Contracts & I/O Specifications**: Identifies payload models, schema structures, triggers, and response codes.
-  7. **Visual Architecture & Sequence Models**: Synthesizes Mermaid graphs representing system boundaries and data interactions.
+Every system interaction captured in the PRD is cross-referenced against the STRIDE threat matrix:
 
-### 3.2 Subsystem 2: Socratic Refinement Engine (`prd-refine`)
-- **Purpose**: Systematically eliminates all `[UNKNOWN: ...]` and `[DECISION NEEDED: ...]` markers from `PRD.md`.
-- **Execution Mechanism**:
-  1. **Dependency Analysis**: Builds an internal dependency graph of open unknowns (e.g. Database Choice blocks Data Schema).
-  2. **Atomic Socratic Querying**: Prompts the user with one question at a time, providing the raw meeting context, evaluated tradeoffs, and a concrete recommendation.
-  3. **In-Place Mutation**: Directly edits the affected PRD sections upon user confirmation and logs the decision into Section 9 (*Decision Log & Audit Trail*).
-
-### 3.3 Subsystem 3: Quality Gate & Auditor (`product-audit`)
-- **Purpose**: Acts as an automated quality gate before downstream engineering or full doc derivation begins.
-- **Verification Dimensions**:
-  - **Spec Completeness Index (SCI)**: Mathematical ratio of completed sections to total required sections.
-  - **Cross-Diagram Consistency**: Every system entity referenced in Section 5 must have a corresponding node in the Mermaid diagrams.
-  - **Data Contract Completeness**: Every declared input must have a corresponding output contract and error schema.
-  - **Zero Fabrication Verification**: Checks that no ungrounded technical decisions leaked past the placeholder engine.
-
-### 3.4 Subsystem 4: Product Documentation Suite (`product-doc-suite`)
-- **Purpose**: Generates granular, modular engineering documents from the approved `PRD.md`.
-- **Generated Artifacts**:
-  - `docs/architecture.md`: System Architecture Document (SAD), service topologies, component interaction matrices.
-  - `docs/use-cases.md`: Capability matrix, persona profiles, Given-When-Then (Gherkin) acceptance criteria.
-  - `docs/contracts.md`: JSON Schema contracts, OpenAPI/gRPC interface definitions, event payloads.
-  - `docs/viability.md`: Business viability scorecard, risk assessment matrix, compliance review, ROI forecast.
+```text
++-------------------+---------------------------------------------------+-----------------------------------------+
+| STRIDE Category   | Primary Threat Vector                             | Required Architectural Mitigation       |
++-------------------+---------------------------------------------------+-----------------------------------------+
+| **Spoofing**      | Forged client identities / webhook masquerading   | mTLS, JWT signature verification        |
+| **Tampering**     | Payload manipulation in transit or storage        | TLS 1.3, HMAC-SHA256 payload signing    |
+| **Repudiation**   | Denying execution of an administrative action     | Append-only immutable audit log table   |
+| **Information**   | Sensitive PII leakage in logs or responses        | Field-level masking & column encryption |
+| **Denial of Serv**| API saturation / unthrottled ingestion bursts     | Redis token-bucket rate limiter         |
+| **Elevation**     | Privilege escalation via missing authz checks     | Enforced RBAC middleware on all routes  |
++-------------------+---------------------------------------------------+-----------------------------------------+
+```
 
 ---
 
-## 4. State Management & Lifecycle
+## 4. Zero-Downtime Database Architecture (Expand / Contract)
+
+To prevent downtime during schema migrations, the architecture enforces a three-phase transition pattern:
+
+```mermaid
+flowchart LR
+    Phase1["1. Expand Phase\n(Add Nullable Column /\nDual-Write to New Table)"] --> Phase2["2. Backfill Phase\n(Async Migration of\nHistorical Records)"]
+    Phase2 --> Phase3["3. Contract Phase\n(Drop Legacy Column /\nCut over Reads Completely)"]
+```
+
+1. **Expand Phase**: Application code writes to both old and new schema structures; reads remain on old schema.
+2. **Backfill Phase**: Background workers asynchronously migrate existing historical data into the new format.
+3. **Contract Phase**: Application shifts reads to new schema; legacy columns and deprecated tables are dropped safely.
+
+---
+
+## 5. SPIDR Execution & Build Order
+
+The architectural build order is governed by SPIDR dependency tiers:
+
+```mermaid
+flowchart TD
+    Spike["1. Spike\n(Benchmarking & Tech Verification)"] --> CorePaths["2. Paths\n(Happy Path Core Workflows)"]
+    CorePaths --> Interfaces["3. Interfaces\n(REST / Webhook / CLI)"]
+    Interfaces --> Data["4. Data\n(Nested Schemas & Persistence)"]
+    Data --> Rules["5. Rules\n(RBAC & Compliance Hardening)"]
+```
+
+---
+
+## 6. Subsystem Detailed Specifications
+
+### 6.1 Subsystem 1: Ingestion & 7-Facet Synthesizer (`raw-to-prd`)
+- **Purpose**: Consumes raw input text and constructs an exhaustive first draft of `PRD.md`.
+- **The 7-Facet Extraction Matrix**:
+  1. **Utility & Problem Space**: Target personas, user pain points, and workaround comparisons.
+  2. **Business Value & KPIs**: Quantifiable ROI targets, timeline milestones.
+  3. **Scope & SPIDR Slicing**: Clear MVP boundaries decomposed across Spike, Paths, Interfaces, Data, and Rules.
+  4. **Use Cases & UI Facet**: User journeys, Gherkin scenarios, ASCII screen wireframes, and field validation matrices.
+  5. **Technologies & Systems Touched**: Internal databases, microservices, 3rd party APIs, and cloud topology.
+  6. **Data Contracts & I/O**: Payload JSON schemas, output models, and error responses.
+  7. **Viability, NFRs & Rollout**: Quantitative latency SLOs (p95/p99), STRIDE security, and zero-downtime runbooks.
+
+### 6.2 Subsystem 2: Socratic Refinement Engine (`prd-refine`)
+- **Purpose**: Systematically eliminates all `[UNKNOWN: ...]` and `[DECISION NEEDED: ...]` markers from `PRD.md`.
+- **Execution Mechanism**:
+  1. **Dependency Analysis**: Builds an internal dependency graph of open unknowns.
+  2. **Atomic Socratic Querying**: Prompts the user with one question at a time with clear context and recommendations.
+  3. **In-Place Mutation**: Directly patches `PRD.md` and appends to Section 9 (*Decision Log & Audit Trail*).
+
+### 6.3 Subsystem 3: Quality Gate & Auditor (`product-audit`)
+- **Purpose**: Acts as an automated quality gate before downstream engineering begins.
+- **Verification Dimensions**: 7-gate validation (Completeness, Diagram parity, Contract pairing, NFR budgeting, RBAC security, SPIDR slicing, Zero-hallucination).
+
+### 6.4 Subsystem 4: Product Documentation Suite (`product-doc-suite`)
+- **Purpose**: Generates granular, modular engineering documents from the approved `PRD.md` (`docs/architecture.md`, `docs/use-cases.md`, `docs/contracts.md`, `docs/viability.md`).
+
+---
+
+## 7. State Management & Lifecycle
 
 ```text
 [ RAW INTAKE ] ──> [ DRAFT (SCI < 60%) ] ──> [ REFINING (SCI 60-95%) ] ──> [ FROZEN (SCI 100%) ] ──> [ DERIVED DOCS ]
 ```
-
-| Lifecycle Phase | Active Document State | Allowed Actions |
-|---|---|---|
-| **Raw Intake** | Input stream parsed | Ingestion, initial facet extraction |
-| **Draft** | `PRD.md` contains multiple `[UNKNOWN]` markers | Initial read, batch placeholder logging |
-| **Refining** | `PRD.md` undergoing Socratic loop | 1-at-a-time interview, in-place patching, decision logging |
-| **Frozen** | `PRD.md` validated by `product-audit` (PASS) | Read-only baseline for engineering & planning |
-| **Derived Docs** | Companion docs written in `docs/` | Downstream execution (`spec-driven-development`, `/plan`, etc.) |
 
 *Standalone State Lifecycle Source:* [state-lifecycle.mmd](file:///home/bill/src/ai/product-owner/docs/diagrams/state-lifecycle.mmd)

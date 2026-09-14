@@ -21,8 +21,10 @@
 | **Gate 1** | Section Completeness | {{STATUS_G1}} | {{NOTES_G1}} |
 | **Gate 2** | Diagram & Entity Consistency | {{STATUS_G2}} | {{NOTES_G2}} |
 | **Gate 3** | I/O Schema Pairing | {{STATUS_G3}} | {{NOTES_G3}} |
-| **Gate 4** | Placeholder Registry Parity | {{STATUS_G4}} | {{NOTES_G4}} |
-| **Gate 5** | Zero Unverified Hallucination | {{STATUS_G5}} | {{NOTES_G5}} |
+| **Gate 4** | NFR & Latency Budgeting | {{STATUS_G4}} | {{NOTES_G4}} |
+| **Gate 5** | Threat Model & RBAC Security | {{STATUS_G5}} | {{NOTES_G5}} |
+| **Gate 6** | SPIDR MVP Slicing & Rollout Runbook | {{STATUS_G6}} | {{NOTES_G6}} |
+| **Gate 7** | Zero Unverified Hallucination & Parity | {{STATUS_G7}} | {{NOTES_G7}} |
 
 ---
 
