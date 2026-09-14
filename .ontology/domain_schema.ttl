@@ -1,0 +1,5 @@
+@prefix bfo: <http://purl.obolibrary.org/obo/bfo.owl#> .
+@prefix : <http://bsommers.github.io/product-owner/> .
+
+:Agent a bfo:IndependentContinuant .
+:Skill a bfo:SpecificallyDependentContinuant .

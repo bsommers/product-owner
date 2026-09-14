@@ -1,0 +1,2 @@
+CREATE (d:Domain {name: 'AutonomousAgent'})-[:SUBCLASS_OF]->(b:BFO:Continuant:IndependentContinuant)
+CREATE (c:Capability {name: 'AgentSkill'})-[:SUBCLASS_OF]->(b:BFO:Continuant:SpecificallyDependentContinuant)
